@@ -16,6 +16,10 @@ class User(BaseModel):
     class Config:
         from_attributes = True
 
+class UserUpdate(BaseModel):
+    username: str
+    email: str
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

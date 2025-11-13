@@ -123,3 +123,19 @@ def deactivate_user(
     db.refresh(user)
 
     return user
+
+@router.patch('/user/update', response_model = user.User)
+def update_user(
+    data:user.UserUpdate,
+    current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["me"])],
+    db:Session = Depends(get_db)
+):
+    user = db.query(models.user.User).filter(models.user.User.username == current_user.username).first()
+    user.email = data.email
+    user.username = data.username
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user
