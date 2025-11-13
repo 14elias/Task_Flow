@@ -1,19 +1,21 @@
 # app/api/v1/auth_routes.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Security
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
+from typing import Annotated
 from jose import jwt
 # from app import crud, schemas
 from ...schemas import user
+from ... import models
 from ...crud import crud_user
-from ..deps import get_current_active_user
+from ..deps import get_current_active_user, scopes_for_role
 from app.db.session import get_db
 from ...core import security
 from app.core.config import settings
 
 router = APIRouter()
 
-@router.post("/signup")
+@router.post("/signup", response_model = user.User)
 def signup(user_in: user.UserCreate, db: Session = Depends(get_db)):
     user = crud_user.get_by_email(db, email=user_in.email)
     if user:
@@ -30,9 +32,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    access_token = security.create_access_token({"sub": user.username})
-    refresh_token = security.create_refresh_token({"sub": user.username})
+    
+    final_scopes = scopes_for_role(user.role or '')
+    access_token = security.create_access_token({"sub": user.username, "scope": " ".join(final_scopes)})
+    refresh_token = security.create_refresh_token({"sub": user.username, "scope": " ".join(final_scopes)})
 
     return {
         "access_token": access_token,
@@ -50,6 +53,7 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
             raise HTTPException(status_code=401, detail="Invalid refresh token")
         
         username = payload.get('sub')
+        scopes = payload.get('scope')
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid refresh token")
     except jwt.ExpiredSignatureError:
@@ -62,8 +66,8 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     
-    new_access_token = security.create_access_token({'sub': user.username})
-    new_refresh_token = security.create_refresh_token({'sub': user.username})
+    new_access_token = security.create_access_token({'sub': user.username,'scope':scopes})
+    new_refresh_token = security.create_refresh_token({'sub': user.username, 'scope':scopes})
 
     return {
         "access_token": new_access_token,
@@ -73,6 +77,49 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     }
 
 
-@router.post('/me', response_model = user.User)
-def get_me(current_user: user.User = Depends(get_current_active_user)):
+@router.get('/user/me', response_model = user.User)
+def get_me(current_user: Annotated[user.User, Security(get_current_active_user, scopes=["me"])]):
+    print(current_user)
     return current_user
+
+@router.delete('/user/delete')
+def delete_user(
+    username:str,
+    current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
+    db:Session = Depends(get_db)
+    ):
+
+    user = db.query(models.user.User).filter(models.user.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.delete(user)
+    db.commit()
+
+    return f'deleted user->{user}'
+
+@router.get('/user/all', response_model =list[user.User])
+def get_all_user(
+    current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
+    db:Session = Depends(get_db)
+    ):
+
+    users = db.query(models.user.User).all()
+    return users
+
+@router.patch('/user/deactivate', response_model = user.User)
+def deactivate_user(
+    username:str,
+    current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
+    db:Session = Depends(get_db)
+):
+    user = db.query(models.user.User).filter(models.user.User.username == username).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_active = False
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user
