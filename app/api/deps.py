@@ -1,6 +1,5 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer,SecurityScopes
-import logging
 from pydantic import ValidationError
 from typing import List
 from jose import JWTError
@@ -10,8 +9,6 @@ from ..core import security
 from .. import crud, models, schemas
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-logger = logging.getLogger("uvicorn.error")
 
 
 def get_current_user(

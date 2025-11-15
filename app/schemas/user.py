@@ -20,6 +20,9 @@ class UserUpdate(BaseModel):
     username: str
     email: str
 
+    class Config:
+        extra = "forbid"
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

@@ -9,6 +9,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "celery>=5.5.3",
     "fastapi>=0.121.0",
+    "httpx>=0.28.1",
     "mysqlclient>=2.2.7",
     "pwdlib[argon2]>=0.3.0",
     "pydantic-settings>=2.11.0",
