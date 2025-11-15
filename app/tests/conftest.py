@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -7,6 +8,7 @@ from sqlalchemy.pool import StaticPool
 from app.db.session import Base
 from app.main import app
 from app.db.session import get_db
+
 
 
 
@@ -61,4 +63,5 @@ def client():
     """FastAPI TestClient that uses the overridden DB."""
     with TestClient(app) as c:
         yield c
+
 

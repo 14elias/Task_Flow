@@ -5,6 +5,16 @@ import json
 from app.core.security import get_password_hash, create_access_token
 from app.models.user import User
 
+
+@pytest.fixture
+def admin_token(test_create_admin):
+    return create_access_token(data={"sub":test_create_admin.username, "scope":"me admin"})
+
+@pytest.fixture
+def user_token(test_create_user):
+    return create_access_token(data={"sub":test_create_user.username, "scope":"me"})
+
+
 @pytest.fixture
 def test_create_admin(db_session):
     user = User(
@@ -34,13 +44,6 @@ def test_create_user(db_session):
     return user
 
 
-@pytest.fixture
-def admin_token(test_create_admin):
-    return create_access_token(data={"sub":test_create_admin.username, "scope":"me admin"})
-
-@pytest.fixture
-def user_token(test_create_user):
-    return create_access_token(data={"sub":test_create_user.username, "scope":"me"})
 
 
 

@@ -2,15 +2,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy.orm import Session
 from typing import Annotated
-from jose import jwt
 # from app import crud, schemas
 from ...schemas import user
 from ... import models
-from ...crud import crud_user
 from ..deps import get_current_active_user
 from app.db.session import get_db
-from ...core import security
-from app.core.config import settings
+
 
 router = APIRouter()
 
@@ -44,6 +41,7 @@ def get_all_user(
 
     users = db.query(models.user.User).all()
     return users
+
 
 @router.patch('/user/deactivate', response_model = user.User)
 def deactivate_user(
