@@ -6,15 +6,16 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.db.session import Base
-from app.main import app
+from app import main
 from app.db.session import get_db
+import app.models
 
 
 
 
 
 TEST_DB_URL = "sqlite:///./test.db"
-TEST_DB_URL = "sqlite:///:memory:"
+# TEST_DB_URL = "sqlite:///:memory:"
 
 engine = create_engine(
     TEST_DB_URL,
@@ -22,17 +23,23 @@ engine = create_engine(
     poolclass=StaticPool,
 )
 
+connection = engine.connect()
+
 TestingSessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine,
+    bind=connection,  # bind to the single Connection
 )
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def set_up_test_db():
-    Base.metadata.create_all(bind=engine)
-    yield 
-    Base.metadata.drop_all(bind=engine)
+    # ensure clean schema every test session
+    Base.metadata.drop_all(bind=connection)
+    Base.metadata.create_all(bind=connection)
+    yield
+    Base.metadata.drop_all(bind=connection)
+    connection.close()
+    engine.dispose()
 
 @pytest.fixture
 def db_session():
@@ -53,15 +60,15 @@ def override_get_db(db_session):
             yield db_session
         finally:
             pass
-    app.dependency_overrides[get_db] = _get_test_db
+    main.app.dependency_overrides[get_db] = _get_test_db
     yield
-    app.dependency_overrides.clear()
+    main.app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def client():
     """FastAPI TestClient that uses the overridden DB."""
-    with TestClient(app) as c:
+    with TestClient(main.app) as c:
         yield c
 
 

@@ -2,7 +2,7 @@ from sqlalchemy import String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
-from .base import Base
+from app.db.session import Base
 
 
 class Project(Base):
@@ -16,7 +16,7 @@ class Project(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # relationships
-    manager: Mapped["User"] = relationship()
+    manager: Mapped["User"] = relationship(back_populates="managed_projects")
     tasks: Mapped[list["Task"]] = relationship(back_populates="project")
     teams: Mapped[list["ProjectTeam"]] = relationship(back_populates="project")
 

@@ -1,5 +1,3 @@
-from .base import Base
-
 # User & Role
 from .user import User, RoleEnum
 

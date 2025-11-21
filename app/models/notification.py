@@ -2,7 +2,7 @@ from sqlalchemy import Boolean, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
-from .base import Base
+from app.db.session import Base
 
 
 class Notification(Base):

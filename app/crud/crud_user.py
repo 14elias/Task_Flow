@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from app.models.user import User
 from app import schemas, models
 from app.core.security import get_password_hash
@@ -20,3 +21,10 @@ def create_user(db, user: schemas.user.UserCreate):
     db.refresh(user)
 
     return user
+
+def delete_user(username, db):
+    user = db.query(models.user.User).filter(models.user.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.delete(user)
+    db.commit()

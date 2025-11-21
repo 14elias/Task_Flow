@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from ..core import security
 from .. import crud, models, schemas
+from app.models.user import RoleEnum
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -50,7 +51,7 @@ def get_current_active_user(current_user: models.user.User = Depends(get_current
 
 def scopes_for_role(role: str) -> List[str]:
     mapping = {
-        "admin": ["me", "admin", "delete"],
-        "user": ["me"],
+        RoleEnum.ADMIN: ["me", "admin", "delete"],
+        RoleEnum.MEMBER: ["me"],
     }
     return mapping.get(role, [])

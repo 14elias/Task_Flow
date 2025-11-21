@@ -3,21 +3,20 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from enum import Enum as PyEnum
 
-from .base import Base
+from app.db.session import Base
 
 
 class RoleEnum(PyEnum):
     ADMIN = "admin"
     MANAGER = "manager"
-    MEMBER = "member"
-    CLIENT = "client"
+    MEMBER = "user"
 
 
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    full_name: Mapped[str] = mapped_column(String(100))
+    username: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(150), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum), default=RoleEnum.MEMBER)

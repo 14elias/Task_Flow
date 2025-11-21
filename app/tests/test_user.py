@@ -4,6 +4,7 @@ import json
 
 from app.core.security import get_password_hash, create_access_token
 from app.models.user import User
+from app.models.user import User, RoleEnum
 
 
 @pytest.fixture
@@ -22,7 +23,7 @@ def test_create_admin(db_session):
         email=f"admin_{uuid.uuid4().hex}@example.com",
         hashed_password=get_password_hash("password123"),
         is_active=True,
-        role='admin'
+        role=RoleEnum.ADMIN 
     )
     db_session.add(user)
     db_session.commit()
@@ -36,7 +37,7 @@ def test_create_user(db_session):
         email=f"user_{uuid.uuid4().hex}@example.com",
         hashed_password=get_password_hash("password123"),
         is_active=True,
-        role='user'
+        role=RoleEnum.MEMBER
     )
     db_session.add(user)
     db_session.commit()

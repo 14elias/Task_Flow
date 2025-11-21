@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Annotated
 # from app import crud, schemas
 from ...schemas import user
-from ... import models
+from ... import models, crud
 from ..deps import get_current_active_user
 from app.db.session import get_db
 
@@ -19,17 +19,17 @@ def get_me(current_user: Annotated[user.User, Security(get_current_active_user, 
     return current_user
 
 @router.delete('/user/delete')
-def delete_user(
+def delete_a_user(
     username:str,
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
     db:Session = Depends(get_db)
     ):
-
-    user = db.query(models.user.User).filter(models.user.User.username == username).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    db.delete(user)
-    db.commit()
+    user = crud.crud_user.delete_user(username, db)
+    # user = db.query(models.user.User).filter(models.user.User.username == username).first()
+    # if not user:
+    #     raise HTTPException(status_code=404, detail="User not found")
+    # db.delete(user)
+    # db.commit()
 
     return user
 
