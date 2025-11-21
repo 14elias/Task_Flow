@@ -85,6 +85,7 @@ def remove_member(db, id: int):
 def get_team_members(db, id):
     team_members = db.query(Team).filter(Team.id == id).first()
 
-    return team_members.members
+    users = [member.user for member in team_members.members]
+    return users
 
 

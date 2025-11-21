@@ -19,12 +19,13 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(150), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
-    role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum), default=RoleEnum.MEMBER)
+    role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum), default=RoleEnum.ADMIN)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationships
+    created_teams: Mapped[list["Team"]] = relationship(back_populates="creator")
     teams: Mapped[list["TeamMember"]] = relationship(back_populates="user")
     assigned_tasks: Mapped[list["Task"]] = relationship(back_populates="assignee")
     comments: Mapped[list["Comment"]] = relationship(back_populates="user")

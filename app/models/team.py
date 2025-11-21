@@ -9,10 +9,13 @@ class Team(Base):
     __tablename__ = "teams"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100))
+    name: Mapped[str] = mapped_column(String(100), unique=True)
     description: Mapped[str] = mapped_column(String(255), nullable=True)
+
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    creator: Mapped["User"] = relationship(back_populates="created_teams")
     # relationships
     members: Mapped[list["TeamMember"]] = relationship(back_populates="team")
     projects: Mapped[list["ProjectTeam"]] = relationship(back_populates="team")
