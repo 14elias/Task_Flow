@@ -46,7 +46,6 @@ def update_team(db, id: int, data: dict):
     if not team:
         return None
     
-    team = db.query(Team).filter(Team.id == id).first()
     if data.get('name'):
         team.name = data.get('name')
     if data.get('description'):

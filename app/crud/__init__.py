@@ -1,1 +1,1 @@
-from . import crud_user, crud_team
+from . import crud_user, crud_team, crud_project
