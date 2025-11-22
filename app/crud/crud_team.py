@@ -16,15 +16,24 @@ def creat_team(db, team: team.TeamCreat):
     return team
 
 def get_all_team(db):
-    return db.query(Team).all()
+    teams = db.query(Team).all()
+
+    if not teams:
+        raise db.query(Team).all()
+    return teams
 
 def get_a_team(db, id):
     team = db.query(Team).filter(Team.id == id).first()
 
+    if not team:
+        raise HTTPException(status_code=404, detail="team not found in the team")
+
     return team
 
 def delete_team(db, id):
-    team = db.query(Team).filter(Team.id == id).first()
+
+    if not team:
+        raise HTTPException(status_code=404, detail="team not found in the team")
 
     db.delete(team)
     db.commit()
@@ -83,9 +92,11 @@ def remove_member(db, id: int):
     return existing_member
 
 def get_team_members(db, id):
-    team_members = db.query(Team).filter(Team.id == id).first()
+    team= db.query(Team).filter(Team.id == id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="team not found in the team")
 
-    users = [member.user for member in team_members.members]
+    users = [member.user for member in team.members]
     return users
 
 

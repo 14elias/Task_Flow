@@ -4,6 +4,7 @@ from typing import Annotated
 
 from app.models.user import User
 from app.schemas.team import ResponseTeam, TeamCreat, CreateTeamMember, ResponseTeamMember
+from app.schemas.user import User
 from app.api import deps
 from app.crud import crud_team
 from app.db.session import get_db
@@ -90,7 +91,7 @@ def creat_team(
 
     return new_member
 
-@router.get('/get_team_members')
+@router.get('/get_team_members', response_model = list[User])
 def get_team(
     id:int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
