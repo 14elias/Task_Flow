@@ -99,3 +99,13 @@ def get_team_members(db, id):
     return users
 
 
+def get_team_projects(db, id):
+    team= db.query(Team).filter(Team.id == id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="team not found in the team")
+
+    projects = [proj.project for proj in team.projects]
+
+    return projects
+
+

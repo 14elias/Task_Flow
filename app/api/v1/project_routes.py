@@ -13,7 +13,7 @@ from app.crud import crud_project
 router = APIRouter()
 
 
-@router.post('/create/project')
+@router.post('/project/create')
 def create_project(
     data: project.ProjectCreate,
     current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -27,7 +27,7 @@ def create_project(
     return project
 
 
-@router.delete('/delete/project')
+@router.delete('/project/delete')
 def delete_project(
     id:int,
     current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -39,7 +39,7 @@ def delete_project(
     return project
 
 
-@router.get('/get/project')
+@router.get('/project/get')
 def get_a_project(
     id:int,
     current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -51,7 +51,7 @@ def get_a_project(
     return project
 
 
-@router.get('/get/all_project')
+@router.get('/project/get_all')
 def get_all_project(
     current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
@@ -62,8 +62,8 @@ def get_all_project(
     return project
 
 
-@router.patch('/update/project')
-def get_all_project(
+@router.patch('/project/update')
+def update_project(
     id:int,
     data:project.ProjectUpdate ,
     current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -74,3 +74,27 @@ def get_all_project(
     project = crud_project.update_project(db, id, data)
 
     return project
+
+
+@router.post('/project/assign_to_team')
+def project_add_team(
+    data:project.ProjectTeam,
+    current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
+    db: Session = Depends(get_db)
+):
+    data = data.model_dump()
+    project_team = crud_project.give_project_to_a_team(db, data)
+
+    return project_team
+
+
+@router.post('/project/remove_from_team')
+def project_remove_team(
+    id:int,
+    current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
+    db: Session = Depends(get_db)
+):
+    project_team = crud_project.remove_project_from_a_team(db, id)
+
+    return project_team
+

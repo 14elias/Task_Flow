@@ -3,17 +3,16 @@ from sqlalchemy.orm import Session
 from typing import Annotated
 
 from app.models.user import User
-from app.schemas.team import ResponseTeam, TeamCreat, CreateTeamMember, ResponseTeamMember
-from app.schemas.user import User
+from app.schemas import user, project, team
 from app.api import deps
 from app.crud import crud_team
 from app.db.session import get_db
 
 router = APIRouter()
  
-@router.post("/creat/team", response_model = ResponseTeam, status_code = 201)
+@router.post("/team/create", response_model = team.ResponseTeam, status_code = 201)
 def creat_team(
-    team: TeamCreat,
+    team: team.TeamCreat,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
 ):
@@ -24,7 +23,7 @@ def creat_team(
     return team
 
 
-@router.get('/get_all_team', response_model = list[ResponseTeam])
+@router.get('/team/get/all', response_model = list[team.ResponseTeam])
 def get_team(
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
@@ -34,7 +33,7 @@ def get_team(
     return teams
 
 
-@router.get('/get_a_team', response_model = ResponseTeam)
+@router.get('/team/get', response_model = team.ResponseTeam)
 def get_team(
     id:int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -44,7 +43,7 @@ def get_team(
 
     return teams
 
-@router.get('/delete_a_team', response_model = ResponseTeam)
+@router.get('/team/delete', response_model = team.ResponseTeam)
 def get_team(
     id:int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -55,10 +54,10 @@ def get_team(
     return teams
 
 
-@router.patch('/update_a_team', response_model = ResponseTeam)
+@router.patch('/team/update', response_model = team.ResponseTeam)
 def get_team(
     id:int,
-    data: TeamCreat,
+    data: team.TeamCreat,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
 ):
@@ -69,9 +68,9 @@ def get_team(
     return teams
 
 
-@router.post("/team/add_member", status_code = 201, response_model = ResponseTeamMember)
+@router.post("/team/add/member", status_code = 201, response_model = team.ResponseTeamMember)
 def creat_team(
-    team_member_data: CreateTeamMember,
+    team_member_data: team.CreateTeamMember,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
 ):
@@ -81,7 +80,7 @@ def creat_team(
     return new_member
 
 
-@router.post("/team/remove_member", response_model = ResponseTeamMember)
+@router.post("/team/remove/member", response_model = team.ResponseTeamMember)
 def creat_team(
     id: int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -91,7 +90,7 @@ def creat_team(
 
     return new_member
 
-@router.get('/get_team_members', response_model = list[User])
+@router.get('/team/get/members', response_model = list[user.User])
 def get_team(
     id:int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -100,3 +99,14 @@ def get_team(
     team_members =crud_team.get_team_members(db, id)
 
     return team_members
+
+
+@router.get('/team/get/projects', response_model=list[project.ProjectResponse])
+def get_projects(
+    id: int,
+    current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
+    db: Session = Depends(get_db)
+):
+    team_projects =crud_team.get_team_projects(db, id)
+
+    return team_projects
