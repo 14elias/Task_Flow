@@ -1,0 +1,23 @@
+from fastapi import APIRouter, Depends, HTTPException, Security
+from sqlalchemy.orm import Session
+from typing import Annotated
+
+from app.db.session import get_db
+from app.models import user, task
+from app.schemas import task
+from app.api import deps
+from app.crud import crud_task
+
+
+router = APIRouter()
+
+@router.post('/task/create')
+def create_task(
+    task: task.CreateTask,
+    crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
+    db: Session = Depends(get_db)
+):
+    data = task.model_dump()
+    task = crud_task.create_task(db, data)
+
+    return task
