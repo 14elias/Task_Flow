@@ -10,9 +10,11 @@ class CreateTask(BaseModel):
     due_date: datetime
 
 class AssignTask(BaseModel):
+    task_id: int
     assigned_to: int
 
 class UpdateTask(BaseModel):
+    task_id: int
     title: str
     details: str
     project_id: int 
@@ -20,11 +22,12 @@ class UpdateTask(BaseModel):
     assigned_to: int
 
 class ResponseTask(BaseModel):
+    id: int
     title: str
     details: str
     project_id: int 
     due_date: datetime
-    assigned_to: int
+    assigned_to: int | None
     priority: int
     status:TaskStatus
 

@@ -11,7 +11,7 @@ from app.crud import crud_task
 
 router = APIRouter()
 
-@router.post('/task/create')
+@router.post('/task/create', response_model = task.ResponseTask)
 def create_task(
     task: task.CreateTask,
     crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
@@ -22,7 +22,7 @@ def create_task(
 
     return task
 
-@router.get('/task/get_all')
+@router.get('/task/get_all', response_model = list[task.ResponseTask])
 def get_tasks(
     crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
     db: Session = Depends(get_db)
