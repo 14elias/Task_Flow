@@ -23,7 +23,10 @@ class Task(Base):
     priority: Mapped[int] = mapped_column(Integer, default=1)
 
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
-    assigned_to: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    assigned_to: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True
+    )
 
     due_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

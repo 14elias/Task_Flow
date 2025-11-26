@@ -21,3 +21,12 @@ def create_task(
     task = crud_task.create_task(db, data)
 
     return task
+
+@router.get('/task/get_all')
+def get_tasks(
+    crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
+    db: Session = Depends(get_db)
+):
+    tasks = crud_task.get_tasks(db)
+
+    return tasks
