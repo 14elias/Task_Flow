@@ -105,3 +105,25 @@ def remove_project_from_a_team(db, id: int):
     db.commit()
 
     return existing_project_team
+
+
+def project_team(db, id):
+    existing_project = db.query(Project).filter(Project.id == id).first()
+
+    if not existing_project:
+        raise HTTPException(status_code=404, detail="project not exist ")
+    
+    teams = existing_project.teams
+
+    return teams
+
+
+def get_project_tasks(db,id):
+     existing_project = db.query(Project).filter(Project.id == id).first()
+
+     if not existing_project:
+        raise HTTPException(status_code=404, detail="project not exist ")
+     
+     tasks = existing_project.tasks
+
+     return tasks

@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy.orm import Session
 from typing import Annotated
 # from app import crud, schemas
-from ...schemas import user
-from ... import models, crud
+from app.schemas import user
+from app import models, crud
 from ..deps import get_current_active_user
 from app.db.session import get_db
 
@@ -15,8 +15,8 @@ router = APIRouter()
 
 @router.get('/user/me', response_model = user.User)
 def get_me(current_user: Annotated[user.User, Security(get_current_active_user, scopes=["me"])]):
-    print(current_user)
     return current_user
+
 
 @router.delete('/user/delete')
 def delete_a_user(
@@ -25,11 +25,7 @@ def delete_a_user(
     db:Session = Depends(get_db)
     ):
     user = crud.crud_user.delete_user(username, db)
-    # user = db.query(models.user.User).filter(models.user.User.username == username).first()
-    # if not user:
-    #     raise HTTPException(status_code=404, detail="User not found")
-    # db.delete(user)
-    # db.commit()
+
 
     return user
 
@@ -39,7 +35,7 @@ def get_all_user(
     db:Session = Depends(get_db)
     ):
 
-    users = db.query(models.user.User).all()
+    users = crud.crud_user.get_all_user(db)
     return users
 
 
@@ -49,17 +45,21 @@ def deactivate_user(
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
     db:Session = Depends(get_db)
 ):
-    user = db.query(models.user.User).filter(models.user.User.username == username).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    user.is_active = False
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    user = crud.crud_user.deactivate(db, username)
 
     return user
+
+
+@router.patch('/user/activate', response_model = user.User)
+def activate_user(
+    username:str,
+    current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
+    db:Session = Depends(get_db)
+):
+    user = crud.crud_user.activate(db, username)
+
+    return user
+
 
 @router.patch('/user/update', response_model = user.User)
 def update_user(
@@ -67,12 +67,18 @@ def update_user(
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["me"])],
     db:Session = Depends(get_db)
 ):
-    user = db.query(models.user.User).filter(models.user.User.username == current_user.username).first()
-    user.email = data.email
-    user.username = data.username
-
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    user = crud.crud_user.update_user(db, current_user, data)
 
     return user
+
+
+
+@router.get('/user/tasks')
+def get_user_tasks(
+    id: int,
+    current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["me"])],
+    db:Session = Depends(get_db)
+):
+    tasks = crud.crud_user.get_user_tasks(db, id)
+
+    return tasks

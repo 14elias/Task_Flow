@@ -98,3 +98,25 @@ def project_remove_team(
 
     return project_team
 
+@router.get('/project/get_teams')
+def get_team_attached_with_project(
+    id: int,
+    current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
+    db: Session = Depends(get_db)
+):
+    
+    project = crud_project.project_team(db, id)
+
+    return project
+
+
+@router.get('/project/get_tasks')
+def get_project_tasks(
+    id: int,
+    current_user: Annotated[user.User, Security(deps.get_current_active_user, scopes=["admin"])],
+    db: Session = Depends(get_db)
+):
+    
+    tasks = crud_project.get_project_tasks(db, id)
+
+    return tasks

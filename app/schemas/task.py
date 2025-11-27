@@ -34,3 +34,17 @@ class ResponseTask(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+class UnAssignTask(BaseModel):
+    task_id: int
+    assigned_to: int
+
+
+class UpdateTask(BaseModel):
+    title: str
+    details: str
+    project_id: int 
+    due_date: datetime
+    priority: int
+    status:TaskStatus
