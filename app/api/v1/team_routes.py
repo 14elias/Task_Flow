@@ -107,6 +107,6 @@ def get_projects(
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
 ):
-    team_projects =crud_team.get_team_projects(db, id)
+    team_projects = crud_team.get_team_projects(db, id)
 
     return team_projects
