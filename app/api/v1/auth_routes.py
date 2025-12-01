@@ -14,8 +14,8 @@ from app.core.config import settings
 router = APIRouter()
 
 @router.post("/signup", response_model = user.User)
-def signup(user_in: user.UserCreate, db: Session = Depends(get_db)):
-    user = crud_user.get_by_email(db, email=user_in.email)
+async def signup(user_in: user.UserCreate, db: Session = Depends(get_db)):
+    user = await crud_user.get_by_email(db, email=user_in.email)
     if user:
         raise HTTPException(status_code=400, detail="Email already registered")
     print(f'the plain password the user wrote is {user_in.password}')
@@ -24,8 +24,8 @@ def signup(user_in: user.UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model = user.Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = crud_user.get_by_username(db, username=form_data.username)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = await crud_user.get_by_username(db, username=form_data.username)
     if not user or not security.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -47,7 +47,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 
 @router.post('/refresh', response_model = user.Token)
-def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     try:
         payload = security.decode_hash_token(refresh_token)
         if payload.get("type") != "refresh":
@@ -62,7 +62,7 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     
-    user = crud_user.get_by_username(db,username)
+    user = await crud_user.get_by_username(db,username)
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")

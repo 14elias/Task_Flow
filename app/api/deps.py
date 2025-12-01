@@ -12,7 +12,7 @@ from app.models.user import RoleEnum
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
-def get_current_user(
+async def get_current_user(
     security_scopes: SecurityScopes,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -32,7 +32,7 @@ def get_current_user(
     if not username:
         raise credentials_exception
 
-    user = crud.crud_user.get_by_username(db, username)
+    user = await crud.crud_user.get_by_username(db, username)
     if not user:
         raise credentials_exception
 
