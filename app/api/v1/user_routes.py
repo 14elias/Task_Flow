@@ -19,55 +19,55 @@ def get_me(current_user: Annotated[user.User, Security(get_current_active_user, 
 
 
 @router.delete('/user/delete')
-def delete_a_user(
+async def delete_a_user(
     username:str,
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
     db:Session = Depends(get_db)
     ):
-    user = crud.crud_user.delete_user(username, db)
+    user = await crud.crud_user.delete_user(username, db)
 
 
     return user
 
 @router.get('/user/all', response_model =list[user.User])
-def get_all_user(
+async def get_all_user(
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
     db:Session = Depends(get_db)
     ):
 
-    users = crud.crud_user.get_all_user(db)
+    users = await crud.crud_user.get_all_user(db)
     return users
 
 
 @router.patch('/user/deactivate', response_model = user.User)
-def deactivate_user(
+async def deactivate_user(
     username:str,
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
     db:Session = Depends(get_db)
 ):
-    user = crud.crud_user.deactivate(db, username)
+    user = await crud.crud_user.deactivate(db, username)
 
     return user
 
 
 @router.patch('/user/activate', response_model = user.User)
-def activate_user(
+async def activate_user(
     username:str,
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["admin"])],
     db:Session = Depends(get_db)
 ):
-    user = crud.crud_user.activate(db, username)
+    user = await crud.crud_user.activate(db, username)
 
     return user
 
 
 @router.patch('/user/update', response_model = user.User)
-def update_user(
+async def update_user(
     data:user.UserUpdate,
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["me"])],
     db:Session = Depends(get_db)
 ):
-    user = crud.crud_user.update_user(db, current_user, data)
+    user = await crud.crud_user.update_user(db, current_user, data)
 
     return user
 
