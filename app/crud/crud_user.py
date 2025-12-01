@@ -22,6 +22,13 @@ async def get_by_email(db: AsyncSession, email: str):
     return result.scalar_one_or_none()
 
 
+async def get_by_id(db: AsyncSession, id: int):
+    result = await db.execute(
+        select(User).where(User.id == id)
+    )
+    return result.scalar_one_or_none()
+
+
 
 async def create_user(db: AsyncSession, user: schemas.user.UserCreate):
     new_user = User(

@@ -1,69 +1,59 @@
 from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.models import task, project, user
 from app.schemas.task import CreateTask
-from app.models  import project, user, task
 
 
 
-def create_task(db, data: dict):
-    # existing_task = (
-    #     db.query(task.Task)
-    #     .filter(
-    #         task.Task.assigned_to == data.get('assigned_to'),
-    #         task.Task.project_id == data.get('project_id')
-    #     ).first()
-    # )
+async def create_task(db: AsyncSession, data: dict):
+    # Check if project exists
+    result = await db.execute(
+        select(project.Project).where(project.Project.id == data.get("project_id"))
+    )
+    existing_project = result.scalar_one_or_none()
+    if not existing_project:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    # if existing_task:
-    #     raise HTTPException(status_code=400, detail='the task allready assigned to the user')
-    
-
-    if not db.query(project.Project).filter(project.Project.id == data.get('project_id')).first():
-        raise HTTPException(status_code=404, detail='project not found ')
-
-    # if not db.query(user.User).filter(user.User.id == data.get('assigned_to')).first():
-    #     raise HTTPException(status_code=404, detail='user not found ')
-
-    
+    # Optional: check if assigned_to exists
+    if data.get("assigned_to"):
+        result = await db.execute(
+            select(user.User).where(user.User.id == data.get("assigned_to"))
+        )
+        assigned_user = result.scalar_one_or_none()
+        if not assigned_user:
+            raise HTTPException(status_code=404, detail="Assigned user not found")
 
     new_task = task.Task(**data)
-
     db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
+    await db.commit()
+    await db.refresh(new_task)
 
     return new_task
 
 
-def get_tasks(db):
-    tasks = db.query(task.Task).all()
 
-    if not tasks :
-        raise HTTPException(status_code=404, detail= "tasks not found")
-
-    return tasks
+async def get_tasks(db: AsyncSession):
+    result = await db.execute(select(task.Task))
+    tasks = result.scalars().all()
+    return tasks  # empty list is fine; no need to raise 404
 
 
-def assign_task(db, data):
-    existing_task = (
-        db.query(task.Task)
-        .filter(task.Task.id == data.get('task_id'))
-        .first()
-    )
 
+async def assign_task(db: AsyncSession, data: dict):
+    result = await db.execute(select(task.Task).where(task.Task.id == data.get("task_id")))
+    existing_task = result.scalar_one_or_none()
     if not existing_task:
-        raise HTTPException(status_code=404, detail='task not found')
+        raise HTTPException(status_code=404, detail="Task not found")
 
-    project_team_ids = [pt.team_id for pt in existing_task.project.teams]
-
-    existing_user = (
-        db.query(user.User)
-        .filter(user.User.id == data.get('assigned_to'))
-        .first()
-    )
-
-    if not existing_user:
-        raise HTTPException(status_code=404, detail='user not found')
     
+    result = await db.execute(select(user.User).where(user.User.id == data.get("assigned_to")))
+    existing_user = result.scalar_one_or_none()
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    
+    project_team_ids = [pt.team_id for pt in existing_task.project.teams]
     user_team_ids = [ut.team_id for ut in existing_user.teams]
 
     if not any(tid in project_team_ids for tid in user_team_ids):
@@ -72,67 +62,60 @@ def assign_task(db, data):
             detail="User is not a member of any team assigned to this project"
         )
 
-    existing_task.assigned_to = data.get('assigned_to')
-
-    db.commit()
-    db.refresh(existing_task)
+    existing_task.assigned_to = data.get("assigned_to")
+    await db.commit()
+    await db.refresh(existing_task)
 
     return existing_task
 
 
-def unassign_task(db, data):
-    existing_task = (
-        db.query(task.Task)
-        .filter(task.Task.id == data.get('task_id'))
-        .first()
-    )
 
+async def unassign_task(db: AsyncSession, data: dict):
+    result = await db.execute(select(task.Task).where(task.Task.id == data.get("task_id")))
+    existing_task = result.scalar_one_or_none()
     if not existing_task:
-        raise HTTPException(status_code=404, detail='task not found')
-    
+        raise HTTPException(status_code=404, detail="Task not found")
+
     existing_task.assigned_to = None
-
-    db.commit()
-    db.refresh(existing_task)
+    await db.commit()
+    await db.refresh(existing_task)
 
     return existing_task
 
 
-def update_task(db, data, id):
-    existing_task = (
-        db.query(task.Task)
-        .filter(task.Task.id == id)
-        .first()
-    )
 
+async def update_task(db: AsyncSession, data: dict, id: int):
+    result = await db.execute(select(task.Task).where(task.Task.id == id))
+    existing_task = result.scalar_one_or_none()
     if not existing_task:
-        raise HTTPException(status_code=404, detail='task not found')
-    
+        raise HTTPException(status_code=404, detail="Task not found")
+
     for field, value in data.items():
         setattr(existing_task, field, value)
 
-    db.commit()
-    db.refresh(existing_task)
+    await db.commit()
+    await db.refresh(existing_task)
 
     return existing_task
 
 
-def get_tasks_based_status(db, status, skip: int = 0, limit: int = 100):
-    tasks = db.query(task.Task).filter(task.Task.status == status).all()
 
-    if not tasks :
-        raise HTTPException(status_code=404, detail= "tasks not found")
+async def get_tasks_based_status(db: AsyncSession, status: str, skip: int = 0, limit: int = 100):
+    result = await db.execute(
+        select(task.Task).where(task.Task.status == status).offset(skip).limit(limit)
+    )
+    tasks = result.scalars().all()
+    return tasks  
 
-    return tasks
 
 
-def delete_task(db, id):
-    existing_task = db.query(task.Task).filter(task.Task.id == id).first()
-
+async def delete_task(db: AsyncSession, id: int):
+    result = await db.execute(select(task.Task).where(task.Task.id == id))
+    existing_task = result.scalar_one_or_none()
     if not existing_task:
-        raise HTTPException(status_code=404, detail='there is no task with this id')
-    
-    db.delete(existing_task)
-    db.commit()
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    await db.delete(existing_task)
+    await db.commit()
 
     return existing_task
