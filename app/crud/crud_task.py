@@ -1,8 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.models import task, project, user
 from app.schemas.task import CreateTask
+from app.services import notification_services
 
 
 
@@ -41,13 +43,27 @@ async def get_tasks(db: AsyncSession):
 
 
 async def assign_task(db: AsyncSession, data: dict):
-    result = await db.execute(select(task.Task).where(task.Task.id == data.get("task_id")))
+    task_id = data.get("task_id")
+    stmt = (
+        select(task.Task)
+        .options(
+            selectinload(task.Task.project).selectinload(project.Project.teams)
+        )
+        .where(task.Task.id == task_id)
+    )
+    result = await db.execute(stmt)
     existing_task = result.scalar_one_or_none()
     if not existing_task:
         raise HTTPException(status_code=404, detail="Task not found")
 
     
-    result = await db.execute(select(user.User).where(user.User.id == data.get("assigned_to")))
+    user_id = data.get("assigned_to")
+
+    result = await db.execute(
+        select(user.User)
+        .options(selectinload(user.User.teams))  # <-- eager load the teams relationship
+        .where(user.User.id == user_id)
+    )
     existing_user = result.scalar_one_or_none()
     if not existing_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -66,19 +82,25 @@ async def assign_task(db: AsyncSession, data: dict):
     await db.commit()
     await db.refresh(existing_task)
 
+    await notification_services(db, user_id, payload = f'you are assigned {task_id}')
+
     return existing_task
 
 
 
 async def unassign_task(db: AsyncSession, data: dict):
+    task_id = data.get("task_id")
     result = await db.execute(select(task.Task).where(task.Task.id == data.get("task_id")))
     existing_task = result.scalar_one_or_none()
     if not existing_task:
         raise HTTPException(status_code=404, detail="Task not found")
 
+    user_id = existing_task.assigned_to
     existing_task.assigned_to = None
     await db.commit()
     await db.refresh(existing_task)
+
+    await notification_services(db, user_id, payload = f'you are unassigned from {task_id}')
 
     return existing_task
 
