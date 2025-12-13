@@ -32,6 +32,6 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # relationships
-    project: Mapped["Project"] = relationship(back_populates="tasks")
+    project: Mapped["Project"] = relationship(back_populates="tasks", lazy="selectin")
     assignee: Mapped["User"] = relationship(back_populates="assigned_tasks")
     comments: Mapped[list["Comment"]] = relationship(back_populates="task")

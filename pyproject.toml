@@ -6,11 +6,12 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.17.1",
+    "asyncmy>=0.2.10",
     "bcrypt>=5.0.0",
     "celery>=5.5.3",
+    "eventlet>=0.40.4",
     "fastapi>=0.121.0",
     "httpx>=0.28.1",
-    "mysqlclient>=2.2.7",
     "pwdlib[argon2]>=0.3.0",
     "pydantic-settings>=2.11.0",
     "pydantic[dotenv,email]>=2.12.4",

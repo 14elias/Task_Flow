@@ -38,7 +38,6 @@ class ResponseTask(BaseModel):
 
 class UnAssignTask(BaseModel):
     task_id: int
-    assigned_to: int
 
 
 class UpdateTask(BaseModel):

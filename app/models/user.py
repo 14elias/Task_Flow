@@ -26,7 +26,7 @@ class User(Base):
 
     # Relationships
     created_teams: Mapped[list["Team"]] = relationship(back_populates="creator")
-    teams: Mapped[list["TeamMember"]] = relationship(back_populates="user")
+    teams: Mapped[list["TeamMember"]] = relationship(back_populates="user", lazy="selectin")
     assigned_tasks: Mapped[list["Task"]] = relationship(back_populates="assignee")
     comments: Mapped[list["Comment"]] = relationship(back_populates="user")
     notifications: Mapped[list["Notification"]] = relationship(back_populates="user")
