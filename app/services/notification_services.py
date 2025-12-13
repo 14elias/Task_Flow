@@ -2,7 +2,7 @@
 import json
 import redis
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from fastapi import HTTPException
 from app.core.config import settings
 from app.core.celery_app import celery_app
 from app.models.notification import Notification  # adjust import if your models structure differs
@@ -20,13 +20,21 @@ def _user_channel(user_id: int) -> str:
 def _user_history_key(user_id: int) -> str:
     return f"notifications:user:{user_id}:history"
 
-async def create_and_publish(db: AsyncSession, user_id: int, payload: dict, send_email: bool = True):
+async def create_and_publish(db: AsyncSession, user_id: int, payload: str, send_email: bool = True):
     """
     Persist notification, publish to Redis pubsub, push to history list, and enqueue email.
     - db: AsyncSession
     """
 
-    user = await get_by_id(user_id)
+    user = await get_by_id(db, user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found for notification"
+        )
+
+
     user_email = user.email
 
     # 1) persist to DB

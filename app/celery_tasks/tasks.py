@@ -6,6 +6,7 @@ import json
 from email.message import EmailMessage
 from smtplib import SMTP
 from app.core.config import settings
+from app.core.celery_app import celery_app
 
 logger = get_task_logger(__name__)
 r = redis.StrictRedis.from_url(settings.REDIS_PUB_URL, decode_responses=True)
@@ -17,10 +18,12 @@ class BaseTaskWithRetry(Task):
     retry_backoff_max = 600
 
 
-@shared_task(
+@celery_app.task(
     bind=True,
-    base=BaseTaskWithRetry,
-    name="app.celery_tasks.tasks.send_email_task"
+    autoretry_for=(Exception,),
+    retry_kwargs={"max_retries": 3, "countdown": 5},
+    retry_backoff=True,
+    name="app.celery_tasks.send_email.send_email_task",
 )
 def send_email_task(self, user_id: int, message: dict):
     """
@@ -30,7 +33,7 @@ def send_email_task(self, user_id: int, message: dict):
     """
 
     try:
-        recipient = message.get("payload", {}).get("email") or f"user{user_id}@example.com"
+        recipient = message.get("email") or f"user{user_id}@example.com"
         subject = f"[Taskflow] Notification: {message.get('type')}"
         body = json.dumps(message, indent=2)
 

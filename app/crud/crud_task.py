@@ -82,7 +82,7 @@ async def assign_task(db: AsyncSession, data: dict):
     await db.commit()
     await db.refresh(existing_task)
 
-    await notification_services(db, user_id, payload = f'you are assigned {task_id}')
+    await notification_services.create_and_publish(db, user_id, payload = f'you are assigned a task with id: {task_id}')
 
     return existing_task
 
@@ -96,11 +96,18 @@ async def unassign_task(db: AsyncSession, data: dict):
         raise HTTPException(status_code=404, detail="Task not found")
 
     user_id = existing_task.assigned_to
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Task is not assigned to any user"
+        )
+
     existing_task.assigned_to = None
     await db.commit()
     await db.refresh(existing_task)
 
-    await notification_services(db, user_id, payload = f'you are unassigned from {task_id}')
+    await notification_services.create_and_publish(db, user_id, payload = f'the task with id: {task_id} is unassigned from you')
 
     return existing_task
 

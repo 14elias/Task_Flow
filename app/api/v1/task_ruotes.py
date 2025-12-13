@@ -52,7 +52,7 @@ async def unassign_task(
     db: Session = Depends(get_db)
 ):
     data = data.model_dump()
-    assign_task = await crud_task.assign_task(db,data)
+    unassigned_task = await crud_task.unassign_task(db,data)
 
     return assign_task
 

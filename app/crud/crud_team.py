@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.team import Team, TeamMember
 from app.schemas import team as team_schema
+from app.services import notification_services
 
 
 
@@ -49,7 +50,9 @@ async def delete_team(db: AsyncSession, id: int):
 
     if not team_obj:
         raise HTTPException(status_code=404, detail="Team not found")
-
+    
+    if team_obj.members:
+        raise HTTPException(status_code=409, detail="you can not delete a team with members")
     await db.delete(team_obj)
     await db.commit()
 
@@ -77,10 +80,13 @@ async def update_team(db: AsyncSession, id: int, data: dict):
 
 
 async def add_member(db: AsyncSession, team_member_data: dict):
+    user_id= team_member_data.get("user_id")
+    team_id=team_member_data.get("team_id")
+
     result = await db.execute(
         select(TeamMember).where(
-            TeamMember.team_id == team_member_data.get("team_id"),
-            TeamMember.user_id == team_member_data.get("user_id")
+            TeamMember.team_id == team_id,
+            TeamMember.user_id == user_id
         )
     )
     existing_member = result.scalar_one_or_none()
@@ -93,6 +99,8 @@ async def add_member(db: AsyncSession, team_member_data: dict):
     await db.commit()
     await db.refresh(new_member)
 
+    await notification_services.create_and_publish(db, user_id, payload = f'you are added to the team with id: {team_id}')
+
     return new_member
 
 
@@ -101,11 +109,16 @@ async def remove_member(db: AsyncSession, id: int):
     result = await db.execute(select(TeamMember).where(TeamMember.id == id))
     existing_member = result.scalar_one_or_none()
 
+    user_id = existing_member.user_id
+    team_id = existing_member.team_id
+
     if not existing_member:
         raise HTTPException(status_code=404, detail="User not found in team")
 
     await db.delete(existing_member)
     await db.commit()
+
+    await notification_services.create_and_publish(db, user_id, payload = f'you are removed from team with id: {team_id}')
 
     return existing_member
 

@@ -72,13 +72,23 @@ async def update_user(
     return user
 
 
-
 @router.get('/user/tasks')
-def get_user_tasks(
+async def get_user_tasks(
     id: int,
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["me"])],
     db:Session = Depends(get_db)
 ):
-    tasks = crud.crud_user.get_user_tasks(db, id)
+    tasks = await crud.crud_user.get_user_tasks(db, id)
+
+    return tasks
+
+
+@router.get('/user/notifications')
+async def get_user_notifications(
+    id: int,
+    current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["me"])],
+    db:Session = Depends(get_db)
+):
+    tasks = await crud.crud_user.get_user_notifications(db, id)
 
     return tasks
