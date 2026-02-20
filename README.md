@@ -45,14 +45,14 @@ Hybrid notification system using:
 
 ## 🛠️ Tech Stack
 
-| Component      | Technology                          |
-| -------------- | ----------------------------------- |
-| Framework      | FastAPI (Python 3.10+)              |
-| Database       | PostgreSQL + SQLAlchemy 2.0 (Async) |
-| Task Queue     | Celery + Redis                      |
-| Real-time      | WebSockets + Redis Pub/Sub          |
-| Authentication | python-jose, pwdlib                 |
-| Validation     | Pydantic v2                         |
+| Component      | Technology                     |
+| -------------- | ------------------------------ |
+| Framework      | FastAPI (Python 3.10+)         |
+| Database       | MySQL + SQLAlchemy 2.0 (Async) |
+| Task Queue     | Celery + Redis                 |
+| Real-time      | WebSockets + Redis Pub/Sub     |
+| Authentication | JWT, pwdlib                    |
+| Validation     | Pydantic v2                    |
 
 ---
 
