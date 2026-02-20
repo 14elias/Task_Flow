@@ -89,6 +89,6 @@ async def get_user_notifications(
     current_user:Annotated[models.user.User, Security(get_current_active_user, scopes=["me"])],
     db:Session = Depends(get_db)
 ):
-    tasks = await crud.crud_user.get_user_notifications(db, id)
+    notifications = await crud.crud_user.get_user_notifications(db, id)
 
-    return tasks
+    return notifications

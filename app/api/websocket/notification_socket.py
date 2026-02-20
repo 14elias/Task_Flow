@@ -17,7 +17,6 @@ async def notifications_ws(websocket: WebSocket, current_user: Annotated[User, S
     Client connects with ws://.../ws/notifications?token=<jwt>.
     get_user_id_from_ws_token should validate the JWT and return the user_id.
     """
-    # authenticate and retrieve user_id (adapt this call to your existing auth helper)
     try:
         user_id = current_user.id
     except Exception:

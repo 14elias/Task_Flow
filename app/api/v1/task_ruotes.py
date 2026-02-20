@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 
 from app.db.session import get_db
@@ -15,7 +15,7 @@ router = APIRouter()
 async def create_task(
     task: task.CreateTask,
     crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     data = task.model_dump()
     task = await crud_task.create_task(db, data)
@@ -25,7 +25,7 @@ async def create_task(
 @router.get('/task/get_all', response_model = list[task.ResponseTask])
 async def get_tasks(
     crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     tasks = await crud_task.get_tasks(db)
 
@@ -36,7 +36,7 @@ async def get_tasks(
 async def assign_task(
     data: task.AssignTask,
     crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     data = data.model_dump()
     assign_task = await crud_task.assign_task(db,data)
@@ -45,16 +45,16 @@ async def assign_task(
 
 
 
-@router.patch('/task/unassign', response_model=task.ResponseTask)
+@router.patch('/task/unassign')
 async def unassign_task(
     data: task.UnAssignTask,
     crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     data = data.model_dump()
     unassigned_task = await crud_task.unassign_task(db,data)
 
-    return assign_task
+    return unassigned_task
 
 
 @router.patch('/task/update', response_model=task.ResponseTask)
@@ -62,7 +62,7 @@ async def update_task(
     id: int,
     data: task.UpdateTask,
     crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     data = data.model_dump(exclude_unset=True)
     assign_task = await crud_task.update_task(db, data, id)
@@ -76,7 +76,7 @@ async def get_tasks_based_status(
     status,
     skip: int = 0, 
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     tasks = await crud_task.get_tasks_based_status(db, status, skip, limit)
 
@@ -87,7 +87,7 @@ async def get_tasks_based_status(
 async def delete_task(
     id: int,
     crrent_user: Annotated[user.User,Security(deps.get_current_active_user, scopes=['admin'])],
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     task = await crud_task.delete_task(db, id)
 

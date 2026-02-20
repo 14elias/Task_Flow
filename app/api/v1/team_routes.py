@@ -24,7 +24,7 @@ async def creat_team(
 
 
 @router.get('/team/get/all', response_model = list[team.ResponseTeam])
-async def get_team(
+async def get_all_team(
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
 ):
@@ -44,7 +44,7 @@ async def get_team(
     return teams
 
 @router.get('/team/delete', response_model = team.ResponseTeam)
-async def get_team(
+async def delete_team(
     id:int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
@@ -55,7 +55,7 @@ async def get_team(
 
 
 @router.patch('/team/update', response_model = team.ResponseTeam)
-async def get_team(
+async def update_team(
     id:int,
     data: team.TeamCreat,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
@@ -69,7 +69,7 @@ async def get_team(
 
 
 @router.post("/team/add/member", status_code = 201, response_model = team.ResponseTeamMember)
-async def creat_team(
+async def add_team_member(
     team_member_data: team.CreateTeamMember,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
@@ -81,7 +81,7 @@ async def creat_team(
 
 
 @router.post("/team/remove/member", response_model = team.ResponseTeamMember)
-async def creat_team(
+async def remove_team_member(
     id: int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
@@ -91,7 +91,7 @@ async def creat_team(
     return new_member
 
 @router.get('/team/get/members', response_model = list[user.User])
-async def get_team(
+async def get_team_members(
     id:int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
@@ -102,7 +102,7 @@ async def get_team(
 
 
 @router.get('/team/get/projects', response_model=list[project.ProjectResponse])
-async def get_projects(
+async def get_team_projects(
     id: int,
     current_user: Annotated[User, Security(deps.get_current_active_user, scopes=["admin"])],
     db: Session = Depends(get_db)
